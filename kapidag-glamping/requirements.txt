@@ -1,0 +1,6 @@
+flask
+firebase-admin
+textblob
+flask-bcrypt
+python-dotenv
+requests

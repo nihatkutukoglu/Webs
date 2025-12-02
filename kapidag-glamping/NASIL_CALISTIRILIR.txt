@@ -1,0 +1,17 @@
+NASIL ÇALIŞTIRILIR?
+===================
+
+1. Bu klasörde bir terminal açın (Shift + Sağ Tık -> PowerShell Penceresini Buradan Aç).
+2. Gerekli kütüphaneleri yükleyin:
+   pip install -r requirements.txt
+
+3. Uygulamayı başlatın:
+   python app.py
+
+4. Tarayıcınızda şu adrese gidin:
+   http://127.0.0.1:5000
+
+ÖNEMLİ NOTLAR:
+- index.html dosyasına çift tıklayarak açarsanız site BOZUK görünür (kodlar ekranda çıkar).
+- Mutlaka "python app.py" komutu ile çalıştırmalısınız.
+- "serviceAccountKey.json" dosyasının bu klasörde olduğundan emin olun.

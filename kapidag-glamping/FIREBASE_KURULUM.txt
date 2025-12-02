@@ -1,0 +1,47 @@
+FIREBASE VERİTABANI KURULUM REHBERİ
+===================================
+
+Bu proje Google Firebase Firestore veritabanını kullanmaktadır. Veritabanını bağlamak için aşağıdaki adımları sırasıyla uygulayın:
+
+ADIM 1: Firebase Projesi Oluşturma
+----------------------------------
+1. https://console.firebase.google.com/ adresine gidin.
+2. "Create a project" (veya "Add project") butonuna tıklayın.
+3. Projenize bir isim verin (Örn: Kapidag-Glamping) ve devam edin.
+4. Google Analytics'i kapatabilirsiniz (bu proje için şart değil), "Create project" diyerek tamamlayın.
+
+ADIM 2: Firestore Veritabanını Açma
+-----------------------------------
+1. Proje paneli açıldığında, sol menüden "Build" -> "Firestore Database" seçeneğine tıklayın.
+2. "Create database" butonuna basın.
+3. Konum (Location) olarak "eur3 (europe-west)" veya size yakın bir yeri seçebilirsiniz.
+4. Güvenlik kuralları (Security Rules) sorulduğunda "Start in test mode" (Test modunda başla) seçeneğini seçin.
+   (Not: Bu mod 30 gün boyunca herkese okuma/yazma izni verir, geliştirme için uygundur.)
+5. "Create" diyerek veritabanını oluşturun.
+
+ADIM 3: Koleksiyonları Oluşturma (İsteğe Bağlı)
+-----------------------------------------------
+Kodlarımız otomatik olarak veri ekleyecektir ancak yapıyı görmek isterseniz:
+1. "+ Start collection" butonuna basın.
+2. Collection ID: "posts" yazın.
+3. İlk belge için "Auto-ID"ye tıklayın ve save deyin. (Bunu daha sonra silebilirsiniz).
+4. Aynı şekilde "rides" ve "users" koleksiyonlarını da oluşturabilirsiniz.
+
+ADIM 4: Bağlantı Anahtarını (Service Account Key) İndirme
+---------------------------------------------------------
+1. Sol menünün en üstündeki "Project Overview" yanındaki çark simgesine (Ayarlar) tıklayın -> "Project settings".
+2. Üst sekmelerden "Service accounts" sekmesine gelin.
+3. Aşağıda "Firebase Admin SDK" seçili olduğundan ve dilin "Python" olduğundan emin olun.
+4. "Generate new private key" butonuna tıklayın.
+5. Çıkan uyarıya "Generate key" deyin.
+6. Bilgisayarınıza `.json` uzantılı bir dosya inecek.
+
+ADIM 5: Dosyayı Projeye Dahil Etme
+----------------------------------
+1. İndirdiğiniz bu dosyanın adını tam olarak şu şekilde değiştirin: `serviceAccountKey.json`
+2. Bu dosyayı, `app.py` dosyasının olduğu klasörün içine (Masaüstü/ÜYZ HAFTA 1 - 2) taşıyın.
+
+SONUÇ
+-----
+Artık klasörünüzde `serviceAccountKey.json` dosyası var.
+`python app.py` komutunu çalıştırdığınızda, uygulama otomatik olarak bu anahtarı bulacak ve veritabanına bağlanacaktır.

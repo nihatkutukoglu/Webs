@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="tr" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kapıdağ Glamping | Dijital Detoks & Kamp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              forest: {
+                950: "#051a10",
+                900: "#0a2f1c",
+                800: "#114229",
+                700: "#1a5638",
+                600: "#257a4f",
+                100: "#e0f2e9",
+              },
+              gold: {
+                600: "#b08d26",
+                500: "#d4af37",
+                400: "#e5c158",
+                300: "#f2d675",
+              },
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              serif: ["Playfair Display", "serif"],
+            },
+            animation: {
+              float: "float 6s ease-in-out infinite",
+            },
+            keyframes: {
+              float: {
+                "0%, 100%": { transform: "translateY(0)" },
+                "50%": { transform: "translateY(-10px)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: "Playfair Display", serif;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .glass-dark {
+        background: rgba(5, 26, 16, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .glass-card {
+        background: linear-gradient(
+          145deg,
+          rgba(17, 66, 41, 0.6),
+          rgba(10, 47, 28, 0.8)
+        );
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(212, 175, 55, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .glass-card:hover {
+        border-color: rgba(212, 175, 55, 0.3);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0a2f1c;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1a5638;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #d4af37;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-forest-950 text-gray-100 min-h-screen flex flex-col selection:bg-gold-500 selection:text-forest-900"
+  >
+    <!-- Navbar -->
+    <nav
+      class="fixed w-full z-50 glass-dark transition-all duration-300"
+      id="navbar"
+    >
+      <div
+        class="container mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <a
+          href="#"
+          class="text-2xl font-bold tracking-wider flex items-center gap-2 group"
+        >
+          <span class="text-3xl">⛺</span>
+          <span class="text-gold-500 group-hover:text-gold-400 transition"
+            >KAPIDAĞ</span
+          >
+          <span class="text-white font-light">GLAMPING</span>
+            Topluluk
+            <span
+              class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold-500 transition-all group-hover:w-full"
+            ></span>
+          </a>
+          <a
+            href="#rides"
+            class="hover:text-gold-400 transition relative group"
+          >
+            Yol Arkadaşı
+            <span
+              class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold-500 transition-all group-hover:w-full"
+            ></span>
+          </a>
+
+          <div class="h-6 w-px bg-forest-700 mx-2"></div>
+
+          <!-- Auth Section -->
+          <div id="auth-section" class="flex items-center gap-4">
+            <!-- Default Static View (Login/Register Buttons) -->
+            <div id="login-buttons" class="flex items-center gap-3">
+              <button
+                onclick="openAuthModal('login')"
+                class="text-sm text-white hover:text-gold-400 transition font-medium"
+              >
+                Giriş Yap
+              </button>
+              <button
+                onclick="openAuthModal('register')"
+                class="text-sm bg-gold-500 text-forest-900 px-5 py-2 rounded-full hover:bg-gold-400 transition font-bold shadow-lg shadow-gold-500/20"
+              >
+                Kayıt Ol
+              </button>
+            </div>
+
+            <!-- User Profile (Hidden by default) -->
+            <div id="user-profile" class="hidden items-center gap-3">
+              <span class="text-forest-100"
+                >Merhaba,
+                <span
+                  id="username-display"
+                  class="text-gold-400 font-bold"
+                ></span
+              ></span>
+              <a
+                href="/logout"
+                class="text-xs border border-forest-600 px-3 py-1.5 rounded-full hover:bg-red-500/20 hover:border-red-500 hover:text-red-400 transition"
+                >Çıkış</a
+              >
+              <button
+                onclick="toggleAdmin()"
+                class="text-xs bg-gold-500 text-forest-900 px-4 py-1.5 rounded-full hover:bg-gold-400 transition font-bold shadow-lg shadow-gold-500/20"
+              >
+                Admin
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button class="md:hidden text-gold-500 text-2xl focus:outline-none">
+          ☰
+        </button>
+      </div>
+    </nav>
+
+    <!-- Auth Modal -->
+    <div
+      id="authModal"
+      class="fixed inset-0 z-[100] hidden"
+      aria-labelledby="modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+        onclick="closeAuthModal()"
+      ></div>
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div
+          class="relative bg-forest-900 rounded-3xl max-w-md w-full p-8 border border-forest-700 shadow-2xl transform transition-all"
+        >
+          <button
+            onclick="closeAuthModal()"
+            class="absolute top-4 right-4 text-gray-400 hover:text-white"
+          >
+            ✕
+          </button>
+
+          <!-- Tabs -->
+          <div class="flex mb-6 border-b border-forest-700">
+            <button
+              id="tab-login"
+              onclick="switchAuthTab('login')"
+              class="flex-1 pb-3 text-center font-semibold text-gold-500 border-b-2 border-gold-500 transition"
+            >
+              Giriş Yap
+            </button>
+            <button
+              id="tab-register"
+              onclick="switchAuthTab('register')"
+              class="flex-1 pb-3 text-center font-semibold text-gray-400 hover:text-white transition"
+            >
+              Kayıt Ol
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="form-login" action="/login" method="POST" class="space-y-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1"
+                >Kullanıcı Adı</label
+              >
+              <input
+                type="text"
+                name="username"
+                required
+                class="w-full bg-forest-950/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Şifre</label>
+              <input
+                type="password"
+                name="password"
+                required
+                class="w-full bg-forest-950/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-gold-500 hover:bg-gold-400 text-forest-900 font-bold py-3 rounded-xl transition shadow-lg shadow-gold-500/20 mt-2"
+            >
+              Giriş Yap
+            </button>
+          </form>
+
+          <!-- Register Form -->
+          <form
+            id="form-register"
+            action="/register"
+            method="POST"
+            class="space-y-4 hidden"
+          >
+            <div>
+              <label class="block text-xs text-gray-400 mb-1"
+                >Kullanıcı Adı</label
+              >
+              <input
+                type="text"
+                name="username"
+                required
+                class="w-full bg-forest-950/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">E-posta</label>
+              <input
+                type="email"
+                name="email"
+                required
+                class="w-full bg-forest-950/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Şifre</label>
+              <input
+                type="password"
+                name="password"
+                required
+                class="w-full bg-forest-950/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-forest-700 hover:bg-gold-500 hover:text-forest-900 text-white font-bold py-3 rounded-xl transition border border-forest-600 hover:border-gold-500 mt-2"
+            >
+              Hesap Oluştur
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openAuthModal(tab) {
+        document.getElementById("authModal").classList.remove("hidden");
+        switchAuthTab(tab);
+      }
+
+      function closeAuthModal() {
+        document.getElementById("authModal").classList.add("hidden");
+      }
+
+      function switchAuthTab(tab) {
+        const loginForm = document.getElementById("form-login");
+        const registerForm = document.getElementById("form-register");
+        const loginTab = document.getElementById("tab-login");
+        const registerTab = document.getElementById("tab-register");
+
+        if (tab === "login") {
+          loginForm.classList.remove("hidden");
+          registerForm.classList.add("hidden");
+          loginTab.classList.add(
+            "text-gold-500",
+            "border-b-2",
+            "border-gold-500"
+          );
+          loginTab.classList.remove("text-gray-400");
+          registerTab.classList.remove(
+            "text-gold-500",
+            "border-b-2",
+            "border-gold-500"
+          );
+          registerTab.classList.add("text-gray-400");
+        } else {
+          loginForm.classList.add("hidden");
+          registerForm.classList.remove("hidden");
+          registerTab.classList.add(
+            "text-gold-500",
+            "border-b-2",
+            "border-gold-500"
+          );
+          registerTab.classList.remove("text-gray-400");
+          loginTab.classList.remove(
+            "text-gold-500",
+            "border-b-2",
+            "border-gold-500"
+          );
+          loginTab.classList.add("text-gray-400");
+        }
+      }
+    </script>
+
+    <!-- Hero Section -->
+    <header
+      id="weather"
+      class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20"
+    >
+      <!-- Background Image -->
+      <div class="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1496080174650-637e3f22fa03?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+          alt="Camping Night"
+          class="w-full h-full object-cover"
+        />
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-forest-950/90 via-forest-900/60 to-forest-950"
+        ></div>
+      </div>
+
+      <div class="relative z-10 text-center px-4 max-w-5xl mx-auto w-full">
+        <!-- Weather Badge -->
+        <div
+          class="mb-8 inline-flex items-center gap-2 px-6 py-3 rounded-full glass border border-gold-500/30 text-gold-400 text-sm font-semibold tracking-wide uppercase animate-float shadow-lg shadow-black/20"
+        >
+          <span id="weather-condition" class="text-xl">🌤️</span>
+          <span class="w-1 h-1 bg-gold-500 rounded-full"></span>
+          <span id="weather-temp">22°C</span>
+        </div>
+
+        <h1
+          id="weather-message"
+          class="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 drop-shadow-lg"
+        >
+          Doğanın Kalbine Yolculuk
+        </h1>
+
+        <p
+          class="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto font-light leading-relaxed"
+        >
+          Şehrin gürültüsünden uzaklaş, Kapıdağ'ın mistik atmosferinde ruhunu
+          dinlendir. <br class="hidden md:block" />Gerçek bağlantı, Wi-Fi
+          kapandığında başlar.
+        </p>
+
+        <!-- Digital Detox Counter -->
+        <div
+          class="glass p-8 md:p-10 rounded-3xl max-w-lg mx-auto transform hover:scale-[1.02] transition duration-500 border border-gold-500/20 shadow-2xl shadow-black/50"
+        >
+          <div class="flex items-center justify-center gap-3 mb-6">
+            <span class="text-2xl">📵</span>
+            <h3 class="text-2xl font-serif font-bold text-gold-500">
+              Dijital Detoks
+            </h3>
+          </div>
+
+          <!-- Active Timer View (Hidden by default) -->
+          <div id="detox-active" class="hidden text-center">
+            <p class="text-gray-400 text-sm mb-2 uppercase tracking-widest">
+              Geçen Süre
+            </p>
+            <div
+              id="timer"
+              class="text-5xl md:text-6xl font-mono font-bold mb-8 text-white tabular-nums tracking-tighter"
+            >
+              00:00:00
+            </div>
+            <form action="/toggle_detox" method="POST">
+              <input type="hidden" name="action" value="stop" />
+              <button
+                type="submit"
+                class="w-full group relative px-8 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition border border-red-500/30 overflow-hidden"
+              >
+                <span
+                  class="relative z-10 font-semibold flex items-center justify-center gap-2"
+                >
+                  Detoksu Bitir
+                  <span class="group-hover:translate-x-1 transition-transform"
+                    >→</span
+                  >
+                </span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Start Detox View (Default) -->
+          <div id="detox-start" class="text-center">
+            <p class="text-gray-300 mb-8 text-lg">
+              Teknolojiden uzaklaşmaya hazır mısın? Kendine bir iyilik yap.
+            </p>
+            <form action="/toggle_detox" method="POST">
+              <input type="hidden" name="action" value="start" />
+              <button
+                type="submit"
+                class="w-full group relative px-8 py-4 bg-gold-500 hover:bg-gold-400 text-forest-950 rounded-xl transition font-bold shadow-lg shadow-gold-500/20 overflow-hidden"
+              >
+                <div
+                  class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+                ></div>
+                <span
+                  class="relative z-10 flex items-center justify-center gap-2"
+                >
+                  Detoksu Başlat
+                  <span class="text-xl">🌿</span>
+                </span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll Down Indicator -->
+      <div
+        class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-gray-400"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          ></path>
+        </svg>
+      </div>
+    </header>
+
+    <!-- Ambience Player (Fixed Widget) -->
+    <div class="fixed bottom-6 right-6 z-40">
+      <div
+        class="glass-dark p-4 rounded-2xl border border-gold-500/20 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:scale-105 w-64"
+      >
+        <div class="flex items-center justify-between mb-3">
+          <h4
+            class="text-gold-500 font-serif font-bold text-sm flex items-center gap-2"
+          >
+            <span>🎵</span> Doğa Sesleri
+          </h4>
+          <div class="flex gap-1">
+            <span
+              class="w-1 h-3 bg-green-500 rounded-full animate-pulse"
+            ></span>
+            <span
+              class="w-1 h-4 bg-green-500 rounded-full animate-pulse delay-75"
+            ></span>
+            <span
+              class="w-1 h-2 bg-green-500 rounded-full animate-pulse delay-150"
+            ></span>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <button
+            onclick="toggleSound('rain')"
+            id="btn-rain"
+            class="flex flex-col items-center justify-center p-2 rounded-xl bg-forest-800/50 hover:bg-forest-700 border border-forest-600 transition group"
+          >
+            <span class="text-xl mb-1 group-hover:scale-110 transition"
+              >🌧️</span
+            >
+            <span class="text-[10px] text-gray-400">Yağmur</span>
+          </button>
+          <button
+            onclick="toggleSound('forest')"
+            id="btn-forest"
+            class="flex flex-col items-center justify-center p-2 rounded-xl bg-forest-800/50 hover:bg-forest-700 border border-forest-600 transition group"
+          >
+            <span class="text-xl mb-1 group-hover:scale-110 transition"
+              >🌲</span
+            >
+            <span class="text-[10px] text-gray-400">Orman</span>
+          </button>
+          <button
+            onclick="toggleSound('fire')"
+            id="btn-fire"
+            class="flex flex-col items-center justify-center p-2 rounded-xl bg-forest-800/50 hover:bg-forest-700 border border-forest-600 transition group"
+          >
+            <span class="text-xl mb-1 group-hover:scale-110 transition"
+              >🔥</span
+            >
+            <span class="text-[10px] text-gray-400">Ateş</span>
+          </button>
+        </div>
+        <!-- Hidden Audio Elements -->
+        <!-- Using Google Actions Sound Library for reliability -->
+        <audio
+          id="audio-rain"
+          loop
+          preload="none"
+          src="https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg"
+        ></audio>
+        <audio
+          id="audio-forest"
+          loop
+          preload="none"
+          src="https://actions.google.com/sounds/v1/animals/birds_forest_morning.ogg"
+        ></audio>
+        <audio
+          id="audio-fire"
+          loop
+          preload="none"
+          src="https://actions.google.com/sounds/v1/ambiences/fire.ogg"
+        ></audio>
+      </div>
+    </div>
+
+    <!-- Events Section -->
+    <section id="events" class="py-20 bg-forest-950 border-b border-forest-800">
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+          <span
+            class="text-gold-500 font-semibold tracking-widest uppercase text-sm"
+            >Etkinlikler</span
+          >
+          <h2 class="text-4xl md:text-5xl font-bold mt-2 mb-4 text-white">
+            Doğada Buluşalım
+          </h2>
+          <p class="text-gray-400 max-w-2xl mx-auto">
+            Bu hafta Kapıdağ'da gerçekleşecek etkinliklere katıl, topluluğun bir
+            parçası ol.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="events-grid">
+          <!-- Static Fallback / Jinja Loop -->
+          {% if events %} {% for event in events %}
+          <div
+            class="group relative overflow-hidden rounded-3xl h-96 cursor-pointer"
+          >
+            <img
+              src="{{ event.image }}"
+              alt="{{ event.title }}"
+              class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-110"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-forest-950 via-forest-950/50 to-transparent opacity-90"
+            ></div>
+
+            <div class="absolute bottom-0 left-0 w-full p-8">
+              <div class="flex flex-wrap gap-2 mb-3">
+                <div
+                  class="inline-block bg-gold-500 text-forest-950 text-xs font-bold px-3 py-1 rounded-full"
+                >
+                  📅 {{ event.date }}
+                </div>
+                <div
+                  class="inline-block bg-forest-800/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full border border-white/20"
+                >
+                  📍 {{ event.location }}
+                </div>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-2 font-serif">
+                {{ event.title }}
+              </h3>
+              <p class="text-gray-300 text-sm mb-4 line-clamp-2">
+                {{ event.desc }}
+              </p>
+
+              <div
+                class="flex items-center justify-between border-t border-white/10 pt-4"
+              >
+                <div class="flex -space-x-2">
+                  <div
+                    class="w-8 h-8 rounded-full bg-gray-600 border-2 border-forest-900"
+                  ></div>
+                  <div
+                    class="w-8 h-8 rounded-full bg-gray-500 border-2 border-forest-900"
+                  ></div>
+                  <div
+                    class="w-8 h-8 rounded-full bg-gray-400 border-2 border-forest-900 flex items-center justify-center text-[10px] text-forest-900 font-bold"
+                  >
+                    +{{ event.participants }}
+                  </div>
+                </div>
+                <button
+                  onclick="alert('Kaydınız alındı! Etkinlik detayları e-posta adresinize gönderilecek.')"
+                  class="bg-white text-forest-900 hover:bg-gold-500 transition px-4 py-2 rounded-lg text-sm font-bold shadow-lg"
+                >
+                  Kayıt Ol
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <!-- Static Content for Direct File View -->
+          <div class="col-span-3 text-center text-gray-500 py-10">
+            Etkinlikler yükleniyor... (Lütfen sunucuyu başlatın)
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+    <!-- Map Section -->
+    <section
+      id="map"
+      class="py-20 bg-forest-950 border-b border-forest-800 relative overflow-hidden"
+    >
+      <div class="container mx-auto px-6 relative z-10">
+        <div class="text-center mb-12">
+          <span
+            class="text-gold-500 font-semibold tracking-widest uppercase text-sm"
+            >Keşfet</span
+          >
+          <h2 class="text-4xl md:text-5xl font-bold mt-2 mb-4 text-white">
+            Kamp Haritası
+          </h2>
+          <p class="text-gray-400 max-w-2xl mx-auto">
+            Tesisimizi keşfedin ve size en uygun kamp alanını bulun.
+          </p>
+        </div>
+
+        <div
+          class="glass p-4 rounded-3xl border border-gold-500/20 shadow-2xl relative group max-w-5xl mx-auto"
+        >
+          <div class="overflow-hidden rounded-2xl relative h-[500px] w-full z-0">
+             <div id="leaflet-map" class="w-full h-full z-0"></div>
+          </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Initialize Leaflet Map
+                // Coordinates for a scenic spot in Kapıdağ (near Erdek/Ocaklar)
+                const map = L.map('leaflet-map').setView([40.4286, 27.8333], 13);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                // Custom Icons
+                const tentIcon = L.icon({
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/5229/5229237.png',
+                    iconSize: [38, 38],
+                    iconAnchor: [19, 38],
+                    popupAnchor: [0, -38]
+                });
+
+                const fireIcon = L.icon({
+                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/785/785116.png',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                });
+
+                // Markers
+                L.marker([40.4286, 27.8333], {icon: tentIcon}).addTo(map)
+                    .bindPopup('<b style="color:#1a5638">Ana Kamp Alanı</b><br>Resepsiyon ve Lüks Çadırlar')
+                    .openPopup();
+
+                L.marker([40.4310, 27.8350], {icon: fireIcon}).addTo(map)
+                    .bindPopup('<b>Ateş Alanı</b><br>Akşam sohbetleri burada!');
+                
+                L.marker([40.4260, 27.8300]).addTo(map)
+                    .bindPopup('<b>Plaj Yolu</b><br>Denize giden patika.');
+            });
+        </script>
+
+        <div
+          class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center max-w-4xl mx-auto"
+        >
+          <div
+            class="p-4 bg-forest-950/50 rounded-xl border border-forest-800 hover:border-gold-500/30 transition"
+          >
+            <span class="text-3xl block mb-2">⛺</span>
+            <span class="text-gray-300 text-sm font-medium">Lüks Çadırlar</span>
+          </div>
+          <div
+            class="p-4 bg-forest-950/50 rounded-xl border border-forest-800 hover:border-gold-500/30 transition"
+          >
+            <span class="text-3xl block mb-2">🔥</span>
+            <span class="text-gray-300 text-sm font-medium">Ateş Alanı</span>
+          </div>
+          <div
+            class="p-4 bg-forest-950/50 rounded-xl border border-forest-800 hover:border-gold-500/30 transition"
+          >
+            <span class="text-3xl block mb-2">🚿</span>
+            <span class="text-gray-300 text-sm font-medium">Duş & WC</span>
+          </div>
+          <div
+            class="p-4 bg-forest-950/50 rounded-xl border border-forest-800 hover:border-gold-500/30 transition"
+          >
+            <span class="text-3xl block mb-2">🍽️</span>
+            <span class="text-gray-300 text-sm font-medium">Restoran</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="community" class="py-24 bg-forest-900 relative">
+      <!-- Decorative Background Elements -->
+      <div
+        class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none"
+      >
+        <div
+          class="absolute top-20 left-10 w-64 h-64 bg-gold-500 rounded-full blur-3xl"
+        ></div>
+        <div
+          class="absolute bottom-20 right-10 w-96 h-96 bg-forest-600 rounded-full blur-3xl"
+        ></div>
+      </div>
+
+      <div class="container mx-auto px-6 relative z-10">
+        <div class="text-center mb-16">
+          <span
+            class="text-gold-500 font-semibold tracking-widest uppercase text-sm"
+            >Topluluk</span
+          >
+          <h2 class="text-4xl md:text-5xl font-bold mt-2 mb-4 text-white">
+            Kamp Ateşi Sohbetleri
+          </h2>
+          <p class="text-gray-400 max-w-2xl mx-auto">
+            Deneyimlerini paylaş, diğer kampçılarla etkileşime geç. Yapay zeka
+            asistanımız her zaman dinlemede.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <!-- Post Form (Sticky) -->
+          <div class="lg:col-span-4">
+            <div
+              class="glass p-8 rounded-3xl sticky top-28 border border-white/5"
+            >
+              <h3
+                class="text-2xl font-serif font-bold mb-6 flex items-center gap-2"
+              >
+                <span>💭</span> Düşüncelerini Paylaş
+              </h3>
+              <form action="/add_post" method="POST">
+                <div class="mb-4">
+                  <textarea
+                    name="content"
+                    rows="5"
+                    class="w-full bg-forest-950/50 border border-forest-700 rounded-2xl p-4 text-white placeholder-gray-500 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 focus:outline-none transition resize-none"
+                    placeholder="Bugün doğa sana ne fısıldadı?"
+                  ></textarea>
+                </div>
+                <button
+                  type="submit"
+                  class="w-full bg-forest-700 hover:bg-forest-600 text-white font-semibold py-4 rounded-xl transition border border-forest-600 hover:border-gold-500/50 flex items-center justify-center gap-2 group"
+                >
+                  <span>Gönder</span>
+                  <svg
+                    class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    ></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Posts Feed -->
+          <div id="posts-feed" class="lg:col-span-8 space-y-6">
+            <!-- Default Static Content (Example Post) -->
+            <div class="glass-card p-6 md:p-8 rounded-3xl group">
+              <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center space-x-4">
+                  <div
+                    class="w-12 h-12 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center font-bold text-forest-950 text-lg shadow-lg"
+                  >
+                    A
+                  </div>
+                  <div>
+                    <h4
+                      class="font-bold text-lg text-white group-hover:text-gold-400 transition"
+                    >
+                      Admin
+                    </h4>
+                    <span class="text-xs text-gray-400 flex items-center gap-1">
+                      <svg
+                        class="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        ></path>
+                      </svg>
+                      Sabitlenmiş Mesaj
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p class="text-gray-200 mb-6 leading-relaxed text-lg pl-16">
+                Hoş geldiniz! Burası kampçıların buluşma noktası.
+                Deneyimlerinizi paylaşın, yapay zeka asistanımız size eşlik
+                etsin.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rides / Carpooling Section -->
+    <section id="rides" class="py-24 bg-forest-950 border-t border-forest-800">
+      <div class="container mx-auto px-6">
+        <div
+          class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6"
+        >
+          <div>
+            <span
+              class="text-gold-500 font-semibold tracking-widest uppercase text-sm"
+              >Ulaşım</span
+            >
+            <h2 class="text-4xl font-bold mt-2 text-white">Yol Arkadaşı</h2>
+          </div>
+          <button
+            onclick="document.getElementById('rideForm').classList.toggle('hidden')"
+            class="bg-forest-800 hover:bg-gold-500 hover:text-forest-900 text-white px-6 py-3 rounded-xl transition border border-forest-700 font-medium flex items-center gap-2"
+          >
+            <span class="text-xl">+</span> İlan Oluştur
+          </button>
+        </div>
+
+        <!-- Hidden Ride Form -->
+        <div
+          id="rideForm"
+          class="hidden mb-12 glass p-8 rounded-3xl max-w-3xl mx-auto border border-gold-500/20 shadow-2xl"
+        >
+          <h3 class="text-xl font-semibold mb-6 text-center text-gold-400">
+            Yeni Yolculuk Planla
+          </h3>
+          <form
+            action="/add_ride"
+            method="POST"
+            class="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <div class="space-y-1">
+              <label class="text-xs text-gray-400 ml-1">Sürücü Adı</label>
+              <input
+                type="text"
+                name="driver_name"
+                required
+                class="w-full bg-forest-900/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-gray-400 ml-1">Hareket Saati</label>
+              <input
+                type="text"
+                name="departure_time"
+                placeholder="Örn: 17:30"
+                required
+                class="w-full bg-forest-900/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <div class="space-y-1 md:col-span-2">
+              <label class="text-xs text-gray-400 ml-1">Güzergah / Konum</label>
+              <input
+                type="text"
+                name="location"
+                placeholder="Kampüs önünden..."
+                required
+                class="w-full bg-forest-900/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <div class="space-y-1 md:col-span-2">
+              <label class="text-xs text-gray-400 ml-1">İletişim</label>
+              <input
+                type="text"
+                name="contact"
+                placeholder="Telefon veya Instagram"
+                required
+                class="w-full bg-forest-900/50 border border-forest-700 rounded-xl p-3 focus:border-gold-500 focus:outline-none text-white"
+              />
+            </div>
+            <button
+              type="submit"
+              class="md:col-span-2 bg-gold-500 hover:bg-gold-400 text-forest-900 font-bold py-4 rounded-xl transition shadow-lg shadow-gold-500/20"
+            >
+              İlanı Yayınla
+            </button>
+          </form>
+        </div>
+
+        <div
+          id="rides-grid"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          <!-- Static Placeholder (Will be replaced by JS if data exists) -->
+          <div class="col-span-full text-center py-10">
+            <p class="text-gray-500">
+              Yolculuk ilanları yükleniyor veya henüz yok...
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin Dashboard Modal -->
+    <div
+      id="adminModal"
+      class="fixed inset-0 z-[100] hidden"
+      aria-labelledby="modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <!-- Backdrop -->
+      <div
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+        onclick="toggleAdmin()"
+      ></div>
+
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div
+          class="relative bg-forest-900 rounded-3xl max-w-5xl w-full p-8 border border-forest-700 shadow-2xl transform transition-all"
+        >
+          <div
+            class="flex justify-between items-center mb-8 border-b border-forest-800 pb-4"
+          >
+            <div>
+              <h3 class="text-3xl font-serif font-bold text-gold-500">
+                Yönetici Paneli
+              </h3>
+              <p class="text-gray-400 text-sm mt-1">
+                Platform istatistikleri ve analizler
+              </p>
+            </div>
+            <button
+              onclick="toggleAdmin()"
+              class="w-10 h-10 rounded-full bg-forest-800 hover:bg-forest-700 flex items-center justify-center text-gray-400 hover:text-white transition"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div
+              class="bg-forest-950/50 p-6 rounded-2xl border border-forest-800"
+            >
+              <h4 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                <span class="w-2 h-6 bg-gold-500 rounded-full"></span>
+                Kullanıcı Dağılımı
+              </h4>
+              <div class="h-64 relative">
+                <canvas id="usersChart"></canvas>
+              </div>
+            </div>
+            <div
+              class="bg-forest-950/50 p-6 rounded-2xl border border-forest-800"
+            >
+              <h4 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                <span class="w-2 h-6 bg-green-500 rounded-full"></span>
+                Duygu Analizi
+              </h4>
+              <div class="h-64 relative">
+                <canvas id="sentimentChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bg-black py-12 text-center border-t border-forest-900">
+      <div class="container mx-auto px-6">
+        <a href="#" class="text-2xl font-bold tracking-wider inline-block mb-6">
+          <span class="text-gold-500">KAPIDAĞ</span
+          ><span class="text-white font-light">GLAMPING</span>
+        </a>
+        <p class="text-gray-600 text-sm mb-8">
+          &copy; 2023 Kapıdağ Glamping. Yönetim Bilişim Sistemleri Bölümü
+          Projesi.
+        </p>
+      </div>
+    </footer>
+
+    <!-- DATA INJECTION SCRIPT -->
+    <!-- This script will contain Jinja tags. If opened statically, it will fail silently. -->
+    <script>
+      // Default Data (Static Fallback)
+      var serverData = {
+          user: null,
+          weather: null,
+          detoxStart: null,
+          posts: [],
+          rides: []
+      };
+
+      // Jinja Injection Block
+      // The browser will see this as a syntax error if opened directly, which is fine.
+      // Flask will render valid JS.
+      try {
+          {% if weather %}
+          serverData.weather = {
+              condition: "{{ weather.condition }}",
+              temp: "{{ weather.temp }}",
+              message: "{{ weather.message }}"
+          };
+          {% endif %}
+
+          {% if session.get('username') %}
+          serverData.user = "{{ session.get('username') }}";
+          {% endif %}
+
+          {% if detox_start %}
+          serverData.detoxStart = "{{ detox_start }}";
+          {% endif %}
+
+          {% if posts %}
+          serverData.posts = [
+              {% for post in posts %}
+              {
+                  author: "{{ post.author }}",
+                  content: "{{ post.content }}",
+                  timestamp: "{{ post.timestamp.strftime('%d %B, %H:%M') if post.timestamp else '' }}",
+                  sentiment_score: {{ post.sentiment_score }},
+                  ai_reply: "{{ post.ai_reply if post.ai_reply else '' }}"
+              },
+              {% endfor %}
+          ];
+          {% endif %}
+
+          {% if rides %}
+          serverData.rides = [
+              {% for ride in rides %}
+              {
+                  driver_name: "{{ ride.driver_name }}",
+                  departure_time: "{{ ride.departure_time }}",
+                  location: "{{ ride.location }}",
+                  contact: "{{ ride.contact }}"
+              },
+              {% endfor %}
+          ];
+          {% endif %}
+      } catch (e) {
+          console.log("Running in static mode or Jinja error ignored.");
+      }
+    </script>
+
+    <!-- APP LOGIC -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // PROTOCOL CHECK: Warn user if opening file directly
+        if (window.location.protocol === "file:") {
+          const warningBanner = document.createElement("div");
+          warningBanner.className =
+            "fixed top-0 left-0 w-full bg-red-600 text-white p-4 z-[100] text-center font-bold shadow-xl";
+          warningBanner.innerHTML = `
+                    ⚠️ DİKKAT: Siteyi doğrudan dosya olarak açtınız! <br>
+                    Özelliklerin çalışması için terminalden "python app.py" komutunu çalıştırıp <br>
+                    <a href="http://127.0.0.1:5000" class="underline text-gold-300 hover:text-white">http://127.0.0.1:5000</a> adresine gitmelisiniz.
+                `;
+          document.body.prepend(warningBanner);
+
+          // Disable forms to prevent confusion
+          const forms = document.querySelectorAll("form");
+          forms.forEach((f) => {
+            f.onsubmit = (e) => {
+              e.preventDefault();
+              alert('Lütfen siteyi "python app.py" ile çalıştırın.');
+            };
+            f.style.opacity = "0.5";
+            f.style.pointerEvents = "none";
+          });
+        }
+
+        // 1. Update Weather
+        if (serverData.weather) {
+          document.getElementById("weather-condition").innerText =
+            serverData.weather.condition;
+          document.getElementById("weather-temp").innerText =
+            serverData.weather.temp + "°C";
+          document.getElementById("weather-message").innerText =
+            serverData.weather.message;
+        }
+
+        // 2. Update Auth UI
+        if (serverData.user) {
+          document.getElementById("login-buttons").classList.add("hidden");
+          document.getElementById("user-profile").classList.remove("hidden");
+          document.getElementById("user-profile").classList.add("flex");
+          document.getElementById("username-display").innerText =
+            serverData.user;
+        }
+
+        // 3. Update Detox Timer
+        if (serverData.detoxStart) {
+          document.getElementById("detox-start").classList.add("hidden");
+          document.getElementById("detox-active").classList.remove("hidden");
+
+          const startTime = new Date(serverData.detoxStart).getTime();
+          const timerElement = document.getElementById("timer");
+
+          if (!isNaN(startTime)) {
+            setInterval(() => {
+              const now = new Date().getTime();
+              const distance = now - startTime;
+              const hours = Math.floor(
+                (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+              );
+              const minutes = Math.floor(
+                (distance % (1000 * 60 * 60)) / (1000 * 60)
+              );
+              const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+              timerElement.innerHTML =
+                (hours < 10 ? "0" + hours : hours) +
+                ":" +
+                (minutes < 10 ? "0" + minutes : minutes) +
+                ":" +
+                (seconds < 10 ? "0" + seconds : seconds);
+            }, 1000);
+          }
+        }
+
+        // 4. Render Posts
+        if (serverData.posts.length > 0) {
+          const postsContainer = document.getElementById("posts-feed");
+          postsContainer.innerHTML = ""; // Clear static content
+
+          serverData.posts.forEach((post) => {
+            let sentimentBadge = "";
+            if (post.sentiment_score < 0) {
+              sentimentBadge = `<span class="px-4 py-1.5 rounded-full bg-red-500/10 text-red-400 text-xs font-medium border border-red-500/20 flex items-center gap-1"><span>🌧️</span> Stresli</span>`;
+            } else if (post.sentiment_score > 0.5) {
+              sentimentBadge = `<span class="px-4 py-1.5 rounded-full bg-green-500/10 text-green-400 text-xs font-medium border border-green-500/20 flex items-center gap-1"><span>☀️</span> Pozitif</span>`;
+            }
+
+            let aiReplyHtml = "";
+            if (post.ai_reply) {
+              aiReplyHtml = `
+                        <div class="ml-16 bg-forest-950/50 p-5 rounded-2xl border border-gold-500/20 relative overflow-hidden mt-4">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-gold-500"></div>
+                            <div class="flex items-start space-x-3 relative z-10">
+                                <div class="text-2xl mt-1">🤖</div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs font-bold text-gold-500 uppercase tracking-wider">AI Asistan</span>
+                                        <span class="text-[10px] bg-gold-500/20 text-gold-400 px-2 py-0.5 rounded">AUTO</span>
+                                    </div>
+                                    <p class="text-sm text-gray-300 italic">"${post.ai_reply}"</p>
+                                </div>
+                            </div>
+                        </div>`;
+            }
+
+            const postHtml = `
+                    <div class="glass-card p-6 md:p-8 rounded-3xl group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 flex items-center justify-center font-bold text-forest-950 text-lg shadow-lg">
+                                    ${post.author[0].toUpperCase()}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg text-white group-hover:text-gold-400 transition">${
+                                      post.author
+                                    }</h4>
+                                    <span class="text-xs text-gray-400 flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        ${post.timestamp}
+                                    </span>
+                                </div>
+                            </div>
+                            ${sentimentBadge}
+                        </div>
+                        <p class="text-gray-200 mb-6 leading-relaxed text-lg pl-16">${
+                          post.content
+                        }</p>
+                        ${aiReplyHtml}
+                    </div>`;
+
+            postsContainer.innerHTML += postHtml;
+          });
+        }
+
+        // 5. Render Rides
+        if (serverData.rides.length > 0) {
+          const ridesContainer = document.getElementById("rides-grid");
+          ridesContainer.innerHTML = ""; // Clear static placeholder
+
+          serverData.rides.forEach((ride) => {
+            const rideHtml = `
+                    <div class="bg-forest-900/40 p-6 rounded-2xl border border-forest-800 hover:border-gold-500/30 hover:bg-forest-900/60 transition group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                            <span class="text-6xl">🚗</span>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="inline-block bg-forest-800 px-3 py-1 rounded-lg text-xs text-gold-400 mb-4 border border-forest-700">
+                                🕒 ${ride.departure_time}
+                            </div>
+                            <h3 class="font-bold text-xl mb-2 text-white line-clamp-1">${
+                              ride.location
+                            }</h3>
+                            <div class="flex items-center space-x-3 mb-6 mt-4">
+                                <div class="w-8 h-8 rounded-full bg-forest-700 flex items-center justify-center text-xs font-bold text-gray-300 border border-forest-600">
+                                    ${ride.driver_name[0].toUpperCase()}
+                                </div>
+                                <span class="text-sm text-gray-400">${
+                                  ride.driver_name
+                                }</span>
+                            </div>
+                            <a href="tel:${
+                              ride.contact
+                            }" class="block w-full text-center bg-forest-800 hover:bg-gold-500 hover:text-forest-900 py-3 rounded-xl text-sm transition font-medium border border-forest-700 hover:border-gold-500">
+                                İletişime Geç
+                            </a>
+                        </div>
+                    </div>`;
+            ridesContainer.innerHTML += rideHtml;
+          });
+        } else if (serverData.rides.length === 0 && serverData.weather) {
+          // If running on server but no rides
+          document.getElementById("rides-grid").innerHTML = `
+                    <div class="col-span-full text-center py-10">
+                        <p class="text-gray-500">Şu an aktif bir yolculuk ilanı yok.</p>
+                    </div>`;
+        }
+      });
+
+      // Admin Dashboard Logic
+      let chartsInitialized = false;
+
+      function toggleAdmin() {
+        const modal = document.getElementById("adminModal");
+        modal.classList.toggle("hidden");
+
+        if (!modal.classList.contains("hidden") && !chartsInitialized) {
+          loadAdminData();
+        }
+      }
+
+      async function loadAdminData() {
+        try {
+          const response = await fetch("/api/admin_data");
+          if (!response.ok) throw new Error("Network response was not ok");
+          const data = await response.json();
+
+          initCharts(data);
+          chartsInitialized = true;
+        } catch (error) {
+          console.error("Error loading admin data:", error);
+          // Fallback for demo if server not running
+          initCharts({
+            users_count: 150,
+            sentiment_stats: [12, 5, 8],
+          });
+          chartsInitialized = true;
+        }
+      }
+
+      function initCharts(data) {
+        Chart.defaults.color = "#9ca3af";
+        Chart.defaults.borderColor = "#1f2937";
+
+        // Users Chart
+        new Chart(document.getElementById("usersChart"), {
+          type: "doughnut",
+          data: {
+            labels: ["Aktif Kampçı", "Ziyaretçi"],
+            datasets: [
+              {
+                data: [data.users_count, 50],
+                backgroundColor: ["#d4af37", "#1a5638"],
+                borderWidth: 0,
+                hoverOffset: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { padding: 20, usePointStyle: true },
+              },
+            },
+            cutout: "70%",
+          },
+        });
+
+        // Sentiment Chart
+        new Chart(document.getElementById("sentimentChart"), {
+          type: "bar",
+          data: {
+            labels: ["Pozitif", "Negatif", "Nötr"],
+            datasets: [
+              {
+                label: "Yorumlar",
+                data: data.sentiment_stats,
+                backgroundColor: ["#4ade80", "#f87171", "#9ca3af"],
+                borderRadius: 8,
+                barThickness: 40,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(255,255,255,0.05)" },
+              },
+              x: {
+                grid: { display: false },
+              },
+            },
+          },
+        });
+      }
+
+      // Ambience Player Logic
+      function toggleSound(type) {
+        const audio = document.getElementById(`audio-${type}`);
+        const btn = document.getElementById(`btn-${type}`);
+
+        // Stop others (optional, maybe we want to mix them?)
+        // For now let's allow mixing! It's cooler.
+
+        if (audio.paused) {
+          audio.play();
+          btn.classList.add(
+            "bg-gold-500",
+            "text-forest-900",
+            "border-gold-500"
+          );
+          btn.classList.remove(
+            "bg-forest-800/50",
+            "text-gray-400",
+            "border-forest-600"
+          );
+          // Change icon color inside
+          btn
+            .querySelector("span:last-child")
+            .classList.remove("text-gray-400");
+          btn
+            .querySelector("span:last-child")
+            .classList.add("text-forest-900", "font-bold");
+        } else {
+          audio.pause();
+          btn.classList.remove(
+            "bg-gold-500",
+            "text-forest-900",
+            "border-gold-500"
+          );
+          btn.classList.add(
+            "bg-forest-800/50",
+            "text-gray-400",
+            "border-forest-600"
+          );
+
+          btn.querySelector("span:last-child").classList.add("text-gray-400");
+          btn
+            .querySelector("span:last-child")
+            .classList.remove("text-forest-900", "font-bold");
+        }
+      }
+    </script>
+  </body>
+</html>
