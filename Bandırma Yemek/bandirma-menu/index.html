@@ -3,28 +3,86 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/logo.png" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Bizim Bandırma - Şehrin Lezzet ve Gezi Rehberi</title>
+    <title>Bizim Bandırma | Şehrin En Kapsamlı Lezzet ve Gezi Rehberi</title>
 
     <!-- SEO & Meta -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Bizim Bandırma",
+        "url": "https://bizimbandirma.com.tr",
+        "description": "Bandırma'nın en kapsamlı lezzet ve gezi rehberi.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://bizimbandirma.com.tr/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Bizim Bandırma",
+        "url": "https://bizimbandirma.com.tr",
+        "logo": "https://bizimbandirma.com.tr/logo.png",
+        "sameAs": [
+          "https://twitter.com/bizimbandirma",
+          "https://instagram.com/bizimbandirma"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "areaServed": "Bandırma",
+          "availableLanguage": "Turkish"
+        }
+      }
+    </script>
     <meta
       name="description"
-      content="Bandırma'nın en iyi restoranları, kafeleri, otelleri ve gezilecek yerleri tek platformda. Ne yesem diye düşünme, hemen keşfet!"
+      content="Bandırma'da ne yenir, nereye gidilir? En iyi restoranlar, kafeler, turistik yerler, nöbetçi eczaneler ve güncel etkinlikler Bizim Bandırma'da."
     />
+    <meta
+      name="keywords"
+      content="bandırma yemek, bandırma restoranlar, bandırma gezi rehberi, bandırma döner, bandırma kahvaltı, erdek gezilecek yerler, kapıdağ yarımadası, bandırma oteller"
+    />
+    <meta name="author" content="Bizim Bandırma" />
     <meta name="theme-color" content="#ffffff" />
+    <link rel="canonical" href="https://bizimbandirma.com.tr" />
 
     <!-- Social Media (Open Graph) -->
-    <meta property="og:title" content="Bizim Bandırma Rehberi" />
+    <meta
+      property="og:title"
+      content="Bizim Bandırma | Şehrin Lezzet Rehberi"
+    />
     <meta
       property="og:description"
-      content="Bandırma'da ne yenir, nereye gidilir? Şehrin en güncel lezzet ve etkinlik rehberi."
+      content="Bandırma'yı keşfetmeye hazır mısın? Şehrin en iyi mekanları ve gizli kalmış lezzet durakları burada."
     />
-    <meta property="og:image" content="/logo.png" />
-    <meta property="og:url" content="https://bandirma-yemek.web.app" />
+    <meta property="og:image" content="https://bizimbandirma.com.tr/logo.png" />
+    <meta property="og:url" content="https://bizimbandirma.com.tr" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bizim Bandırma" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@bizimbandirma" />
+    <meta name="twitter:title" content="Bizim Bandırma Rehberi" />
+    <meta
+      name="twitter:description"
+      content="Bandırma'nın en güncel yeme-içme ve etkinlik rehberi."
+    />
+    <meta
+      name="twitter:image"
+      content="https://bizimbandirma.com.tr/logo.png"
+    />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,13 +91,18 @@
       rel="stylesheet"
     />
     <!-- Google Analytics (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N8CRBBT1LJ"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-N8CRBBT1LJ"
+    ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-      gtag('config', 'G-N8CRBBT1LJ');
+      gtag("config", "G-N8CRBBT1LJ");
     </script>
   </head>
   <body>
